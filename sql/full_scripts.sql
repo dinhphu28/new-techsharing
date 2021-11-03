@@ -34,7 +34,7 @@ GO
 -- Role
 CREATE TABLE tbl_role (
     col_id INT IDENTITY(1,1),
-    col_rolename NVARCHAR(50) NOT NULL,
+    col_role_name NVARCHAR(50) NOT NULL,
 
     PRIMARY KEY(col_id)
 )
