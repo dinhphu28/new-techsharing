@@ -22,7 +22,7 @@ public class UserRole {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "col_id")
-    private String id;
+    private Integer id;
 
     @Column(name = "col_username")
     private String username;

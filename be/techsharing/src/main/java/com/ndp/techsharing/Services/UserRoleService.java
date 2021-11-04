@@ -1,0 +1,75 @@
+package com.ndp.techsharing.Services;
+
+import java.util.List;
+
+import com.ndp.techsharing.Entities.UserRole;
+import com.ndp.techsharing.JpaRepo.UserRoleRepo;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@Transactional
+public class UserRoleService {
+    @Autowired
+    private UserRoleRepo repo;
+
+    public List<UserRole> retrieveAll() {
+        return repo.findAll();
+    }
+
+    public UserRole retrieveOne(Integer id) {
+        UserRole sth = null;
+
+        try {
+            sth = repo.findById(id).get();
+        } catch (Exception e) {
+            //TODO: handle exception
+        }
+
+        return sth;
+    }
+
+    public UserRole createOne(UserRole userRole) {
+        UserRole tmpUserRole = null;
+
+        userRole.setId(0);
+
+        try {
+            tmpUserRole = repo.save(userRole);
+        } catch (Exception e) {
+            //TODO: handle exception
+        }
+
+        return tmpUserRole;
+    }
+
+    public UserRole updateOne(UserRole userRole) {
+        UserRole tmpUserRole = null;
+
+        try {
+            repo.findById(userRole.getId()).get();
+
+            tmpUserRole = repo.save(userRole);
+        } catch (Exception e) {
+            //TODO: handle exception
+        }
+
+        return tmpUserRole;
+    }
+
+    public Boolean deleteOne(Integer id) {
+        Boolean kk = false;
+
+        try {
+            repo.deleteById(id);
+
+            kk = true;
+        } catch (Exception e) {
+            //TODO: handle exception
+        }
+
+        return kk;
+    }
+}
