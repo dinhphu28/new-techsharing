@@ -39,7 +39,27 @@ public class ArticleEvaluationService {
         } catch (Exception e) {
             //TODO: handle exception
 
-            
+            try {
+                tmpArticleEvaluation = repo.save(articleEvaluation);
+            } catch (Exception e2) {
+                //TODO: handle exception
+            }
         }
+
+        return tmpArticleEvaluation;
+    }
+
+    public ArticleEvaluation updateOne(ArticleEvaluation articleEvaluation) {
+        ArticleEvaluation tmpArticleEvaluation = null;
+
+        try {
+            repo.findById(articleEvaluation.getArticleId()).get();
+
+            tmpArticleEvaluation = repo.save(articleEvaluation);
+        } catch (Exception e) {
+            //TODO: handle exception
+        }
+
+        return tmpArticleEvaluation;
     }
 }
