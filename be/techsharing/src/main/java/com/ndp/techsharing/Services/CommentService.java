@@ -19,6 +19,10 @@ public class CommentService {
         return repo.findAll();
     }
 
+    public List<Comment> retrieveAllByArticleId(Integer articleId) {
+        return repo.findByArticleId(articleId);
+    }
+
     public Comment retrieveOne(Integer id) {
         Comment sth = null;
 

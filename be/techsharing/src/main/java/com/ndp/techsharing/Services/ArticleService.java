@@ -6,6 +6,8 @@ import com.ndp.techsharing.Entities.Article;
 import com.ndp.techsharing.JpaRepo.ArticleRepo;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +19,25 @@ public class ArticleService {
 
     public List<Article> retrieveAll() {
         return repo.findAll();
+    }
+
+    /**
+     * 
+     * @param pageNumber
+     * @return List 10 articles (1 page)
+     */
+    public List<Article> retrieveOneCommonPage(Integer pageNumber) {
+        Page<Article> page = repo.findAll(PageRequest.of(pageNumber, 10));
+
+        List<Article> articles = page.getContent();
+
+        return articles;
+    }
+
+    public List<Article> retrieveOnePageByCategory(Integer pageNumber, String category) {
+        List<Article> articles = repo.findByCategory(category, PageRequest.of(pageNumber, 10));
+
+        return articles;
     }
 
     public Article retrieveOne(Integer id) {
@@ -63,6 +84,8 @@ public class ArticleService {
         Boolean kk = false;
 
         try {
+            repo.findById(id).get();
+
             repo.deleteById(id);
 
             kk = true;
