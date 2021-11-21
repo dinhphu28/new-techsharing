@@ -14,8 +14,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CommentCreateModel {
-
+public class CommentUpdateModel {
     private String author;
 
     private LocalDate date;
@@ -24,8 +23,8 @@ public class CommentCreateModel {
 
     private String content;
 
-    public Comment toComment(Integer articleId) {
-        Comment comment = new Comment(0, author, articleId, date, time, content);
+    public Comment toComment(Integer articleId, Integer id) {
+        Comment comment = new Comment(id, author, articleId, date, time, content);
 
         return comment;
     }

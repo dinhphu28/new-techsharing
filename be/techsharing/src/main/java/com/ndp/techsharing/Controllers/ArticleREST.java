@@ -8,6 +8,7 @@ import com.ndp.techsharing.Models.Article.ArticleCreateModel;
 import com.ndp.techsharing.Models.Article.ArticleUpdateModel;
 import com.ndp.techsharing.Models.Article.PageOfArticleModel;
 import com.ndp.techsharing.Models.Comment.CommentCreateModel;
+import com.ndp.techsharing.Models.Comment.CommentUpdateModel;
 import com.ndp.techsharing.Services.ArticleService;
 import com.ndp.techsharing.Services.CommentService;
 
@@ -189,18 +190,17 @@ public class ArticleREST {
     @PostMapping(
         value = "/{articleId}/comments"
     )
-    public ResponseEntity<Object> createOneCommentOfArticle(@RequestBody CommentCreateModel comment) {
+    public ResponseEntity<Object> createOneCommentOfArticle(@PathVariable("articleId") Integer articleId, @RequestBody CommentCreateModel comment) {
         ResponseEntity<Object> entity;
 
-        if (comment.getArticleId() == null ||
-            comment.getAuthor() == null ||
+        if (comment.getAuthor() == null ||
             comment.getContent() == null ||
             comment.getDate() == null ||
             comment.getTime() == null) {
          
             entity = new ResponseEntity<>("Failed", HttpStatus.BAD_REQUEST);
         } else {
-            Comment commentEntity = comment.toComment();
+            Comment commentEntity = comment.toComment(articleId);
 
             Comment tmpToSave = commentService.createOne(commentEntity);
 
@@ -208,6 +208,75 @@ public class ArticleREST {
                 entity = new ResponseEntity<>("Failed", HttpStatus.BAD_REQUEST);
             } else {
                 entity = new ResponseEntity<>(tmpToSave, HttpStatus.CREATED);
+            }
+        }
+
+        return entity;
+    }
+
+    @PutMapping(
+        value = "/{articleId}/comments/{commentId}",
+        produces = MediaType.APPLICATION_JSON_VALUE,
+        consumes = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<Object> updateOneCommentOfArticle(@PathVariable("articleId") Integer articleId, @PathVariable("commentId") Integer commentId, @RequestBody CommentUpdateModel comment) {
+        ResponseEntity entity;
+
+        if (comment.getAuthor() == null ||
+            comment.getContent() == null ||
+            comment.getDate() == null ||
+            comment.getTime() == null) {
+         
+            entity = new ResponseEntity<>("Failed", HttpStatus.BAD_REQUEST);
+        } else {
+            Comment tmpLoad = commentService.retrieveOne(commentId);
+
+            if(tmpLoad == null) {
+                entity = new ResponseEntity<>("Not found", HttpStatus.NOT_FOUND);
+            } else {
+                if(tmpLoad.getArticleId() != articleId) {
+                    entity = new ResponseEntity<>("Not found", HttpStatus.NOT_FOUND);
+                } else {
+                    Comment commentEntity = comment.toComment(articleId, commentId);
+
+                    Comment tmpToSave = commentService.updateOne(commentEntity);
+
+                    if(tmpToSave == null) {
+                        entity = new ResponseEntity<>("Failed", HttpStatus.BAD_REQUEST);
+                    } else {
+                        entity = new ResponseEntity<>(tmpToSave, HttpStatus.OK);
+                    }
+                }
+            }
+        }
+
+        return entity;
+    }
+
+    @DeleteMapping(
+        value = "/{articleId}/comments/{commentId}",
+        produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<Object> deleteOneCommentOfArticle(@PathVariable("articleId") Integer articleId, @PathVariable("commentId") Integer commentId) {
+        ResponseEntity<Object> entity;
+
+        Comment tmpLoad = commentService.retrieveOne(commentId);
+
+        if(tmpLoad == null) {
+            entity = new ResponseEntity<>("Not found", HttpStatus.NOT_FOUND);
+        } else {
+            if(tmpLoad.getArticleId() != articleId) {
+                entity = new ResponseEntity<>("Not found", HttpStatus.NOT_FOUND);
+            } else {
+                Boolean kk = false;
+
+                kk = commentService.deleteOne(commentId);
+
+                if(kk) {
+                    entity = new ResponseEntity<>("Deleted", HttpStatus.OK);
+                } else {
+                    entity = new ResponseEntity<>("{ \"Notice\": \"Not found\" }", HttpStatus.NOT_FOUND);
+                }
             }
         }
 

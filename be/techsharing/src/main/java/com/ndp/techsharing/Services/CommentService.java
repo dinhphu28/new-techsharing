@@ -67,6 +67,8 @@ public class CommentService {
         Boolean kk = false;
 
         try {
+            repo.findById(id).get();
+            
             repo.deleteById(id);
 
             kk = true;
