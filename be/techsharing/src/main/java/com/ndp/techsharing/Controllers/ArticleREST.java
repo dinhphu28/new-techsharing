@@ -75,7 +75,7 @@ public class ArticleREST {
         if (article != null) {
             return new ResponseEntity<>(article, HttpStatus.OK);
         } else {
-            return new ResponseEntity<>("{ \"Notice\": \"Not found article\" }", HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>("{ \"Notice\": \"Not found\" }", HttpStatus.NOT_FOUND);
         }
     }
 
@@ -96,14 +96,14 @@ public class ArticleREST {
             article.getTitle() == null ||
             article.getUrl() == null) {
             
-            entity = new ResponseEntity<>("Failed", HttpStatus.BAD_REQUEST);
+            entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
         } else {
             Article articleEntity = article.toArticle();
 
             Article tmpToSave = articleService.createOne(articleEntity);
 
             if (tmpToSave == null) {
-                entity = new ResponseEntity<>("Failed", HttpStatus.BAD_REQUEST);
+                entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
             } else {
                 entity = new ResponseEntity<>(tmpToSave, HttpStatus.CREATED);
             }
@@ -131,14 +131,14 @@ public class ArticleREST {
             article.getTitle() == null ||
             article.getUrl() == null) {
             
-            entity = new ResponseEntity<>("Failed", HttpStatus.BAD_REQUEST);
+            entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
         } else {
             Article articleEntity = article.toArticle(id);
 
             Article tmpToSave = articleService.updateOne(articleEntity);
 
             if (tmpToSave == null) {
-                entity = new ResponseEntity<>("Failed", HttpStatus.BAD_REQUEST);
+                entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
             } else {
                 entity = new ResponseEntity<>(tmpToSave, HttpStatus.OK);
             }
@@ -159,9 +159,9 @@ public class ArticleREST {
         kk = articleService.deleteOne(id);
 
         if(kk) {
-            entity = new ResponseEntity<>("Deleted", HttpStatus.OK);
+            entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.OK);
         } else {
-            entity = new ResponseEntity<>("{ \"Notice\": \"Not found article\" }", HttpStatus.NOT_FOUND);
+            entity = new ResponseEntity<>("{ \"Notice\": \"Not found\" }", HttpStatus.NOT_FOUND);
         }
 
         return entity;
@@ -198,14 +198,14 @@ public class ArticleREST {
             comment.getDate() == null ||
             comment.getTime() == null) {
          
-            entity = new ResponseEntity<>("Failed", HttpStatus.BAD_REQUEST);
+            entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
         } else {
             Comment commentEntity = comment.toComment(articleId);
 
             Comment tmpToSave = commentService.createOne(commentEntity);
 
             if (tmpToSave == null) {
-                entity = new ResponseEntity<>("Failed", HttpStatus.BAD_REQUEST);
+                entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
             } else {
                 entity = new ResponseEntity<>(tmpToSave, HttpStatus.CREATED);
             }
@@ -227,22 +227,22 @@ public class ArticleREST {
             comment.getDate() == null ||
             comment.getTime() == null) {
          
-            entity = new ResponseEntity<>("Failed", HttpStatus.BAD_REQUEST);
+            entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
         } else {
             Comment tmpLoad = commentService.retrieveOne(commentId);
 
             if(tmpLoad == null) {
-                entity = new ResponseEntity<>("Not found", HttpStatus.NOT_FOUND);
+                entity = new ResponseEntity<>("{ \"Notice\": \"Not found\" }", HttpStatus.NOT_FOUND);
             } else {
                 if(tmpLoad.getArticleId() != articleId) {
-                    entity = new ResponseEntity<>("Not found", HttpStatus.NOT_FOUND);
+                    entity = new ResponseEntity<>("{ \"Notice\": \"Not found\" }", HttpStatus.NOT_FOUND);
                 } else {
                     Comment commentEntity = comment.toComment(articleId, commentId);
 
                     Comment tmpToSave = commentService.updateOne(commentEntity);
 
                     if(tmpToSave == null) {
-                        entity = new ResponseEntity<>("Failed", HttpStatus.BAD_REQUEST);
+                        entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
                     } else {
                         entity = new ResponseEntity<>(tmpToSave, HttpStatus.OK);
                     }
@@ -263,17 +263,17 @@ public class ArticleREST {
         Comment tmpLoad = commentService.retrieveOne(commentId);
 
         if(tmpLoad == null) {
-            entity = new ResponseEntity<>("Not found", HttpStatus.NOT_FOUND);
+            entity = new ResponseEntity<>("{ \"Notice\": \"Not found\" }", HttpStatus.NOT_FOUND);
         } else {
             if(tmpLoad.getArticleId() != articleId) {
-                entity = new ResponseEntity<>("Not found", HttpStatus.NOT_FOUND);
+                entity = new ResponseEntity<>("{ \"Notice\": \"Not found\" }", HttpStatus.NOT_FOUND);
             } else {
                 Boolean kk = false;
 
                 kk = commentService.deleteOne(commentId);
 
                 if(kk) {
-                    entity = new ResponseEntity<>("Deleted", HttpStatus.OK);
+                    entity = new ResponseEntity<>("{ \"Notice\": \"Deleted\" }", HttpStatus.OK);
                 } else {
                     entity = new ResponseEntity<>("{ \"Notice\": \"Not found\" }", HttpStatus.NOT_FOUND);
                 }
@@ -282,4 +282,10 @@ public class ArticleREST {
 
         return entity;
     }
+
+    /**
+     * For Vote - Evaluation
+     */
+
+    
 }
