@@ -287,5 +287,5 @@ public class ArticleREST {
      * For Vote - Evaluation
      */
 
-    
+    // something
 }
