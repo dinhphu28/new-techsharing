@@ -10,10 +10,10 @@ import { faEnvelope, faMapMarkerAlt, faPhone } from '@fortawesome/free-solid-svg
 function Contact(props) {
     return (
         <div>
-            <section class="contact-section" id="contact">
-                <div class="row">
-                    <div class="col span-1-of-3">
-                        <ul class="information">
+            <section className="contact-section" id="contact">
+                <div className="row">
+                    <div className="col span-1-of-3">
+                        <ul className="information">
                             <li>
                                 <FontAwesomeIcon icon={faMapMarkerAlt} className="small-icon" />
                                 Address: 512 Nguyen Xien, Long Thanh My Ward, Thu Duc City, Ho Chi Minh City
@@ -27,7 +27,7 @@ function Contact(props) {
                                 Phone Number: (+84) 902-746-276
                             </li>
                         </ul>
-                        <ul class="social-icons">
+                        <ul className="social-icons">
                             <li>
                                 <FontAwesomeIcon icon={faFacebook} />
                             </li>

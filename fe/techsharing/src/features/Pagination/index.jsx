@@ -1,69 +1,53 @@
-import React, { Component } from "react";
-import { Pagination, PaginationItem, PaginationLink } from "reactstrap";
+import React, { useState, useEffect } from "react";
+import { Button } from "reactstrap";
 import "./PaginationBar.css"
 
-class PaginationBar extends Component {
-    // constructor(props) {
-    //     super(props);
-    // }
+function PaginationBar(props) {
 
-    render() {
-        return (
-            <div className="my-pagination-bar">
-                <Pagination aria-label="Page navigation example">
-                <PaginationItem disabled>
-                    <PaginationLink
-                    first
-                    href="#"
-                    />
-                </PaginationItem>
-                <PaginationItem disabled>
-                    <PaginationLink
-                    href="#"
-                    previous
-                    />
-                </PaginationItem>
-                <PaginationItem active>
-                    <PaginationLink href="#">
-                    1
-                    </PaginationLink>
-                </PaginationItem>
-                <PaginationItem>
-                    <PaginationLink href="#">
-                    2
-                    </PaginationLink>
-                </PaginationItem>
-                <PaginationItem>
-                    <PaginationLink href="#">
-                    3
-                    </PaginationLink>
-                </PaginationItem>
-                <PaginationItem>
-                    <PaginationLink href="#">
-                    4
-                    </PaginationLink>
-                </PaginationItem>
-                <PaginationItem>
-                    <PaginationLink href="#">
-                    5
-                    </PaginationLink>
-                </PaginationItem>
-                <PaginationItem>
-                    <PaginationLink
-                    href="#"
-                    next
-                    />
-                </PaginationItem>
-                <PaginationItem>
-                    <PaginationLink
-                    href="#"
-                    last
-                    />
-                </PaginationItem>
-                </Pagination>
-            </div>
-        )
-    }
+    const {numberOfPages, currentPage} = props;
+    // const {numberOfPages} = props;
+
+    const [page, setPage] = useState(1);
+
+    useEffect(() => {
+        setPage(currentPage + 1);
+    }, [currentPage]);
+
+    return (
+        <div className="my-pagination-bar">
+            <Button
+                color={
+                    (page > 1) ? "primary" : "secondary"
+                }
+                disabled={(page < 2)}
+                onClick={() => {
+                    if(page > 1) {
+                        setPage(page - 1);
+                        props.onHandleChange(page - 1 - 1);
+                    }
+                }}
+            >
+                Prev
+            </Button>
+
+            <span>{page}</span>
+
+            <Button
+                color={
+                    (page < numberOfPages) ? "primary" : "secondary"
+                }
+                disabled={(page >= numberOfPages)}
+                onClick={() => {
+                    if(page < numberOfPages) {
+                        setPage(page + 1);
+                        props.onHandleChange(page + 1 - 1);
+                    }
+                }}
+            >
+                Next
+            </Button>
+        </div>
+    );
 }
 
 export default PaginationBar;

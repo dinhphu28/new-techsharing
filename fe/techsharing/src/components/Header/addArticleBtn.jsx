@@ -13,7 +13,7 @@ class AddArticleBtn extends Component {
     render() {
         return (
             <div>
-                <Link className="my-svg-btn" to="#">
+                <Link className="my-svg-btn" to="/create-article">
                     <FontAwesomeIcon icon={faPen} />
                 </Link>
             </div>

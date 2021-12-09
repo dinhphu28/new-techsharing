@@ -12,7 +12,8 @@ class ArticleCard extends Component {
     // }
 
     render() {
-        // const {id, title, description, date, author, aUrl, category, thumbnailUrl} = this.props;
+        // const {title, description, date, author, aUrl, thumbnailUrl} = this.props;
+        const { article } = this.props;
 
         // return (
         //     <div className="card">
@@ -43,22 +44,20 @@ class ArticleCard extends Component {
 
         return (
             <Card>
-                <img src="http://pngimg.com/uploads/apple_logo/apple_logo_PNG19674.png" alt="" />
+                <img src={article.thumbnailUrl} alt="" />
                 <Content>
                     <h2>
-                        <Link to="#">Bai viet so 1</Link>
+                        <Link to={"/articles/" + article.url}>{article.title}</Link>
                     </h2>
                     <p>
-                        Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                        Ipsa, recusandae. Ducimus quis vel ab minus cupiditate? Adipisci, vel?
-                        Iste libero exercitationem molestias provident totam distinctio.
+                        {article.description}
                     </p>
                 </Content>
-                <Author>Author: meocon01</Author>
-                <Date>Date: 02-12-21</Date>
+                <Author>Author: {article.author}</Author>
+                <Date>Date: {article.dateCreated}</Date>
                 <Vote>
                     <FontAwesomeIcon icon={faCaretUp} />{' '}
-                    <span>14</span>
+                    <span>0</span>
                     <FontAwesomeIcon icon={faCaretDown} />
                 </Vote>
             </Card>

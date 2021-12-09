@@ -2,7 +2,7 @@
 import { Suspense } from 'react';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import NotFound from './components/NotFound/index';
 import Header from './components/Header/index';
 import MainPage from './pages/MainPage/index.jsx';
@@ -10,8 +10,17 @@ import Footer from './components/Footer';
 import Contact from './components/Contact';
 import SignInPage from './pages/SignInPage';
 import SignUpPage from './pages/SignUpPage';
+import AddArticle from './pages/AddArticle/AddArticle';
+import { useState } from 'react';
 
 function App() {
+
+  const [reloadToggle, setReloadToggle] = useState(false);
+
+  const receiveReloadToggle = (data) => {
+    setReloadToggle(!reloadToggle);
+  };
+
   return (
     <div className="my-app">
       {/* <header className="App-header">
@@ -33,14 +42,15 @@ function App() {
           <Header />
           
           <Routes>
-            <Route exact path="/" element={<MainPage />} />
+            <Route path="/articles/*" element={<MainPage />} />
+            <Route path="/" element={<Navigate replace to="/articles" />} />
 
-            <Route path="/sign-in" element={<SignInPage />} />
+            <Route path="/sign-in" element={<SignInPage onHandleChange={receiveReloadToggle} />} />
             <Route path="/sign-up" element={<SignUpPage />} />
 
+            <Route path="/create-article" element={<AddArticle />} />
 
-
-            <Route path="/*" element={<NotFound />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
 
           <Contact />

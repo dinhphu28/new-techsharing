@@ -2,6 +2,7 @@
     font-family: 'Satisfy', cursive;
     font-size: 1.5rem;
     color: #fec516;
+    margin-left: 1rem;
 }
 
 .my-svg-btn {
@@ -20,4 +21,17 @@
 .my-svg-btn:hover svg {
     transform: scale(1.3);
     color: #e67e22;
+}
+
+.user-avatar-nav {
+    display: flex;
+    align-items: center;
+}
+
+.user-avatar-nav img {
+    margin-left: 1.5rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    object-fit: cover;
 }
