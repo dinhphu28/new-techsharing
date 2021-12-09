@@ -31,6 +31,18 @@ public class UserRoleService {
         return sth;
     }
 
+    public UserRole retrieveOneByUsername(String username) {
+        UserRole sth = null;
+
+        try {
+            sth = repo.findByUsername(username);
+        } catch (Exception e) {
+            //TODO: handle exception
+        }
+
+        return sth;
+    }
+
     public UserRole createOne(UserRole userRole) {
         UserRole tmpUserRole = null;
 

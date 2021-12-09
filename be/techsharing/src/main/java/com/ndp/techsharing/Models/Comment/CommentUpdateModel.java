@@ -17,13 +17,13 @@ import lombok.Setter;
 public class CommentUpdateModel {
     private String author;
 
-    private LocalDate date;
+    // private LocalDate date;
 
-    private LocalTime time;
+    // private LocalTime time;
 
     private String content;
 
-    public Comment toComment(Integer articleId, Integer id) {
+    public Comment toComment(Integer articleId, Integer id, LocalDate date, LocalTime time) {
         Comment comment = new Comment(id, author, articleId, date, time, content);
 
         return comment;

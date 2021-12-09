@@ -15,7 +15,7 @@ public class jwtSecurity implements myJWT{
         
         try {
             Algorithm algorithm = Algorithm.HMAC256(secret);
-            token = "meo";
+            // token = "meo";
             token = JWT.create()
                 .withIssuer("auth0")
                 .withSubject(username)
@@ -28,7 +28,7 @@ public class jwtSecurity implements myJWT{
     }
 
     @Override
-    public Boolean VerifyToken(String token) {
+    public Boolean VerifyToken(String token, String username) {
         Boolean kk = false;
 
         try {
@@ -36,6 +36,7 @@ public class jwtSecurity implements myJWT{
 
             JWTVerifier verifier = JWT.require(algorithm)
                 .withIssuer("auth0")
+                .withSubject(username)
                 .build();
 
             DecodedJWT decodedJWT = verifier.verify(token);

@@ -34,7 +34,7 @@ public class UserService {
     public User createOne(User user) {
         User tmpUser = null;
 
-        Boolean b_existed = false;
+        Boolean b_existed = true;
 
         try {
             tmpUser = repo.findById(user.getUsername()).get();
@@ -42,13 +42,13 @@ public class UserService {
             //TODO: handle exception
             tmpUser = repo.save(user);
 
-            b_existed = true;
+            b_existed = false;
         }
 
         if(b_existed) {
-            return tmpUser;
-        } else {
             return null;
+        } else {
+            return tmpUser;
         }
     }
 

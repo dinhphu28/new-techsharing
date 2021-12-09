@@ -8,6 +8,7 @@ import com.ndp.techsharing.JpaRepo.ArticleRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +28,7 @@ public class ArticleService {
      * @return List 10 articles (1 page)
      */
     public List<Article> retrieveOneCommonPage(Integer pageNumber) {
-        Page<Article> page = repo.findAll(PageRequest.of(pageNumber, 10));
+        Page<Article> page = repo.findAll(PageRequest.of(pageNumber, 10, Sort.by("id").descending()));
 
         List<Article> articles = page.getContent();
 
@@ -35,9 +36,17 @@ public class ArticleService {
     }
 
     public List<Article> retrieveOnePageByCategory(Integer pageNumber, String category) {
-        List<Article> articles = repo.findByCategory(category, PageRequest.of(pageNumber, 10));
+        List<Article> articles = repo.findByCategory(category, PageRequest.of(pageNumber, 10, Sort.by("id").descending()));
 
         return articles;
+    }
+
+    public Long retrieveNumOfPages(String categoryName) {
+        if(categoryName == null) {
+            return repo.count();
+        } else {
+            return repo.countByCategory(categoryName);
+        }
     }
 
     public Article retrieveOne(Integer id) {

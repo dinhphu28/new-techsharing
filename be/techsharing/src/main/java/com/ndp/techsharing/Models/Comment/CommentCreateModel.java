@@ -18,13 +18,13 @@ public class CommentCreateModel {
 
     private String author;
 
-    private LocalDate date;
+    // private LocalDate date;
 
-    private LocalTime time;
+    // private LocalTime time;
 
     private String content;
 
-    public Comment toComment(Integer articleId) {
+    public Comment toComment(Integer articleId, LocalDate date, LocalTime time) {
         Comment comment = new Comment(0, author, articleId, date, time, content);
 
         return comment;

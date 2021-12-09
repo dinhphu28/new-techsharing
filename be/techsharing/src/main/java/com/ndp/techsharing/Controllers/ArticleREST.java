@@ -11,6 +11,8 @@ import com.ndp.techsharing.Models.Comment.CommentCreateModel;
 import com.ndp.techsharing.Models.Comment.CommentUpdateModel;
 import com.ndp.techsharing.Services.ArticleService;
 import com.ndp.techsharing.Services.CommentService;
+import com.ndp.techsharing.Utils.DateTime.MyDateTimeUtils;
+import com.ndp.techsharing.Utils.UriParser.MyUriParserUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -39,6 +41,12 @@ public class ArticleREST {
     @Autowired
     private CommentService commentService;
 
+    @Autowired
+    private MyDateTimeUtils myDateTimeUtils;
+
+    @Autowired
+    private MyUriParserUtils myUriParserUtils;
+
     @GetMapping (
         produces = MediaType.APPLICATION_JSON_VALUE
     )
@@ -49,7 +57,9 @@ public class ArticleREST {
         if (categoryName == null) {
             List<Article> articles = articleService.retrieveOneCommonPage(pageNum);
 
-            pageOfArticleModel.setNumberOfPages(5);
+            Integer noPage = (int)Math.ceil(Double.valueOf(articleService.retrieveNumOfPages(categoryName).intValue()) / 10); // ceiling number of pages and convert to Integer
+
+            pageOfArticleModel.setNumberOfPages(noPage);
             pageOfArticleModel.setCurrentPage(pageNum);
             pageOfArticleModel.setArticles(articles);
 
@@ -57,7 +67,9 @@ public class ArticleREST {
         } else {
             List<Article> articles = articleService.retrieveOnePageByCategory(pageNum, categoryName);
 
-            pageOfArticleModel.setNumberOfPages(6);
+            Integer noPage = (int)Math.ceil(Double.valueOf(articleService.retrieveNumOfPages(categoryName).intValue()) / 10);
+
+            pageOfArticleModel.setNumberOfPages(noPage); // để tạm Number Of Pages
             pageOfArticleModel.setCurrentPage(pageNum);
             pageOfArticleModel.setArticles(articles);
 
@@ -89,16 +101,16 @@ public class ArticleREST {
         if (article.getAuthor() == null ||
             article.getCategory() == null ||
             article.getContent() == null ||
-            article.getDateCreated() == null ||
+            // article.getDateCreated() == null ||
             article.getDescription() == null ||
             article.getThumbnailUrl() == null ||
-            article.getTimeCreated() == null ||
-            article.getTitle() == null ||
-            article.getUrl() == null) {
+            // article.getTimeCreated() == null ||
+            article.getTitle() == null) // ||
+            /* article.getUrl() == null) */ {
             
             entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
         } else {
-            Article articleEntity = article.toArticle();
+            Article articleEntity = article.toArticle(myDateTimeUtils.getCurrentDate(), myDateTimeUtils.getCurrentTime(), myUriParserUtils.getFinalArticleUrl(article.getTitle()));
 
             Article tmpToSave = articleService.createOne(articleEntity);
 
@@ -121,26 +133,28 @@ public class ArticleREST {
         
         ResponseEntity<Object> entity;
 
-        if (article.getAuthor() == null ||
+        if (/* article.getAuthor() == null || */
             article.getCategory() == null ||
             article.getContent() == null ||
-            article.getDateCreated() == null ||
+            // article.getDateCreated() == null ||
             article.getDescription() == null ||
             article.getThumbnailUrl() == null ||
-            article.getTimeCreated() == null ||
-            article.getTitle() == null ||
-            article.getUrl() == null) {
+            // article.getTimeCreated() == null ||
+            article.getTitle() == null) // ||
+            /* article.getUrl() == null) */ {
             
             entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
         } else {
-            Article articleEntity = article.toArticle(id);
+            Article tmpArticle = articleService.retrieveOne(id);
 
-            Article tmpToSave = articleService.updateOne(articleEntity);
+            if(tmpArticle != null) {
+                Article articleEntity = article.toArticle(id, tmpArticle.getDateCreated(), tmpArticle.getTimeCreated(), tmpArticle.getAuthor(), tmpArticle.getUrl());
 
-            if (tmpToSave == null) {
-                entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
-            } else {
+                Article tmpToSave = articleService.updateOne(articleEntity);
+
                 entity = new ResponseEntity<>(tmpToSave, HttpStatus.OK);
+            } else {
+                entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
             }
         }
 
@@ -159,7 +173,7 @@ public class ArticleREST {
         kk = articleService.deleteOne(id);
 
         if(kk) {
-            entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.OK);
+            entity = new ResponseEntity<>("{ \"Notice\": \"Deleted\" }", HttpStatus.OK);
         } else {
             entity = new ResponseEntity<>("{ \"Notice\": \"Not found\" }", HttpStatus.NOT_FOUND);
         }
@@ -194,13 +208,13 @@ public class ArticleREST {
         ResponseEntity<Object> entity;
 
         if (comment.getAuthor() == null ||
-            comment.getContent() == null ||
-            comment.getDate() == null ||
-            comment.getTime() == null) {
+            comment.getContent() == null) { // ||
+            // comment.getDate() == null ||
+            // comment.getTime() == null) {
          
             entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
         } else {
-            Comment commentEntity = comment.toComment(articleId);
+            Comment commentEntity = comment.toComment(articleId, myDateTimeUtils.getCurrentDate(), myDateTimeUtils.getCurrentTime());
 
             Comment tmpToSave = commentService.createOne(commentEntity);
 
@@ -223,9 +237,9 @@ public class ArticleREST {
         ResponseEntity entity;
 
         if (comment.getAuthor() == null ||
-            comment.getContent() == null ||
-            comment.getDate() == null ||
-            comment.getTime() == null) {
+            comment.getContent() == null) { // ||
+            // comment.getDate() == null ||
+            // comment.getTime() == null) {
          
             entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
         } else {
@@ -237,7 +251,7 @@ public class ArticleREST {
                 if(tmpLoad.getArticleId() != articleId) {
                     entity = new ResponseEntity<>("{ \"Notice\": \"Not found\" }", HttpStatus.NOT_FOUND);
                 } else {
-                    Comment commentEntity = comment.toComment(articleId, commentId);
+                    Comment commentEntity = comment.toComment(articleId, commentId, myDateTimeUtils.getCurrentDate(), myDateTimeUtils.getCurrentTime());
 
                     Comment tmpToSave = commentService.updateOne(commentEntity);
 

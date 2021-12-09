@@ -24,7 +24,7 @@ public class UserRole {
     @Column(name = "col_id")
     private Integer id;
 
-    @Column(name = "col_username")
+    @Column(name = "col_username", unique = true)
     private String username;
 
     @Column(name = "col_role_id")

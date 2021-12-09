@@ -21,19 +21,19 @@ public class ArticleUpdateModel {
 
     private String content;
 
-    private LocalDate dateCreated;
+    // private LocalDate dateCreated;
 
-    private LocalTime timeCreated;
+    // private LocalTime timeCreated;
 
-    private String author;
+    // private String author;
 
-    private String url;
+    // private String url;
 
     private String category;
 
     private String thumbnailUrl;
 
-    public Article toArticle(Integer id) {
+    public Article toArticle(Integer id, LocalDate dateCreated, LocalTime timeCreated, String author, String url) {
         Article article = new Article(id, title, description, content, dateCreated, timeCreated, author, url, category, thumbnailUrl);
 
         return article;
