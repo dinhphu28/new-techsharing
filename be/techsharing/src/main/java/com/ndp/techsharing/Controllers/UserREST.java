@@ -14,6 +14,9 @@ import com.ndp.techsharing.Services.UserInfoService;
 import com.ndp.techsharing.Services.UserRoleService;
 import com.ndp.techsharing.Services.UserService;
 import com.ndp.techsharing.Utils.Auth.PasswordAuthUtil;
+import com.ndp.techsharing.Utils.Auth.JWT.jwtSecurity;
+import com.ndp.techsharing.Utils.Auth.JWT.myJWT;
+import com.ndp.techsharing.Utils.Auth.TokenProcessing.AuthHeaderProcessing;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,6 +27,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -41,47 +45,60 @@ public class UserREST {
     @Autowired
     private UserInfoService userInfoService;
 
+    @Autowired
+    private AuthHeaderProcessing authHeaderProcessing;
+
     @GetMapping(
         produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<Object> retrieveByRole(@RequestParam(value = "role", required = true) String role) {
+    public ResponseEntity<Object> retrieveByRole(@RequestParam(value = "role", required = true) String role, @RequestHeader("Authorization") String authorization) {
         ResponseEntity<Object> entity;
 
-        Integer roleId = 3;
+        String token = authHeaderProcessing.getTokenFromAuthHeader(authorization);
 
-        if(role.equals("admin")) {
-            roleId = 1;
-        } else if(role.equals("mod")) {
-            roleId = 2;
-        } else if(role.equals("norm")) {
-            roleId = 3;
-        }
+        myJWT jwt = new jwtSecurity();
 
-        List<UserRole> userRoles = userRoleService.retrieveByRole(roleId);
+        Boolean authorized = jwt.VerifyToken(token, "admin");
 
-        List<UsersManModelReturn> usersManModelReturns = new ArrayList<UsersManModelReturn>();
+        if(authorized) {
+            Integer roleId = 3;
 
-        for(UserRole item : userRoles) {
-            String tmpUsername = item.getUsername();
-
-            User tmpUser = userService.retrieveOne(tmpUsername);
-
-            Boolean tmpActive = tmpUser.getActive();
-
-            UserInfo tmpUserInfo = userInfoService.retrieveOne(tmpUsername);
-
-            String tmpAvatar = "";
-
-            if(tmpUserInfo != null) {
-                tmpAvatar = tmpUserInfo.getAvatar();
+            if(role.equals("admin")) {
+                roleId = 1;
+            } else if(role.equals("mod")) {
+                roleId = 2;
+            } else if(role.equals("norm")) {
+                roleId = 3;
             }
 
-            UsersManModelReturn tmpUsersManModelReturn = new UsersManModelReturn(tmpUsername, tmpActive, tmpAvatar);
+            List<UserRole> userRoles = userRoleService.retrieveByRole(roleId);
 
-            usersManModelReturns.add(tmpUsersManModelReturn);
+            List<UsersManModelReturn> usersManModelReturns = new ArrayList<UsersManModelReturn>();
+
+            for(UserRole item : userRoles) {
+                String tmpUsername = item.getUsername();
+
+                User tmpUser = userService.retrieveOne(tmpUsername);
+
+                Boolean tmpActive = tmpUser.getActive();
+
+                UserInfo tmpUserInfo = userInfoService.retrieveOne(tmpUsername);
+
+                String tmpAvatar = "";
+
+                if(tmpUserInfo != null) {
+                    tmpAvatar = tmpUserInfo.getAvatar();
+                }
+
+                UsersManModelReturn tmpUsersManModelReturn = new UsersManModelReturn(tmpUsername, tmpActive, tmpAvatar);
+
+                usersManModelReturns.add(tmpUsersManModelReturn);
+            }
+
+            entity = new ResponseEntity<>(usersManModelReturns, HttpStatus.OK);
+        } else {
+            entity = new ResponseEntity<>("{ \"Notice\": \"Unauthorized\" }", HttpStatus.UNAUTHORIZED);
         }
-
-        entity = new ResponseEntity<>(usersManModelReturns, HttpStatus.OK);
 
         return entity;
     }
@@ -92,27 +109,37 @@ public class UserREST {
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<Object> forceChangePassword(@RequestBody PasswordForceChangeModel passwordForceChangeModel) {
+    public ResponseEntity<Object> forceChangePassword(@RequestBody PasswordForceChangeModel passwordForceChangeModel, @RequestHeader("Authorization") String authorization) {
         ResponseEntity<Object> entity;
 
-        if(passwordForceChangeModel.getUsername() == null || passwordForceChangeModel.getNewPassword() == null) {
-            entity = new ResponseEntity<>("{ \"Notice\": \"Username and password not be empty\" }", HttpStatus.BAD_REQUEST);
-        } else {
-            User tmpUser = userService.retrieveOne(passwordForceChangeModel.getUsername());
+        String token = authHeaderProcessing.getTokenFromAuthHeader(authorization);
 
-            PasswordAuthUtil passwordAuthUtil = new PasswordAuthUtil();
+        myJWT jwt = new jwtSecurity();
 
-            String encryptedPassword = passwordAuthUtil.storePassword(passwordForceChangeModel.getNewPassword());
+        Boolean authorized = jwt.VerifyToken(token, "admin");
 
-            tmpUser.setPassword(encryptedPassword);
-            
-            User tmpToSave = userService.updateOne(tmpUser);
-
-            if(tmpToSave == null) {
-                entity = new ResponseEntity<>("{ \"Notice\": \"Failed to change password\" }", HttpStatus.BAD_REQUEST);
+        if(authorized) {
+            if(passwordForceChangeModel.getUsername() == null || passwordForceChangeModel.getNewPassword() == null) {
+                entity = new ResponseEntity<>("{ \"Notice\": \"Username and password not be empty\" }", HttpStatus.BAD_REQUEST);
             } else {
-                entity = new ResponseEntity<>("{ \"username\": \"" + passwordForceChangeModel.getUsername() + "\", \"password\": \"" + passwordForceChangeModel.getNewPassword() + "\" }", HttpStatus.OK);
+                User tmpUser = userService.retrieveOne(passwordForceChangeModel.getUsername());
+    
+                PasswordAuthUtil passwordAuthUtil = new PasswordAuthUtil();
+    
+                String encryptedPassword = passwordAuthUtil.storePassword(passwordForceChangeModel.getNewPassword());
+    
+                tmpUser.setPassword(encryptedPassword);
+                
+                User tmpToSave = userService.updateOne(tmpUser);
+    
+                if(tmpToSave == null) {
+                    entity = new ResponseEntity<>("{ \"Notice\": \"Failed to change password\" }", HttpStatus.BAD_REQUEST);
+                } else {
+                    entity = new ResponseEntity<>("{ \"username\": \"" + passwordForceChangeModel.getUsername() + "\", \"password\": \"" + passwordForceChangeModel.getNewPassword() + "\" }", HttpStatus.OK);
+                }
             }
+        } else {
+            entity = new ResponseEntity<>("{ \"Notice\": \"Unauthorized\" }", HttpStatus.UNAUTHORIZED);
         }
 
         return entity;
@@ -123,23 +150,33 @@ public class UserREST {
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<Object> changeActiveState(@RequestBody ActiveStateChangeModel activeStateChangeModel) {
+    public ResponseEntity<Object> changeActiveState(@RequestBody ActiveStateChangeModel activeStateChangeModel, @RequestHeader("Authorization") String authorization) {
         ResponseEntity<Object> entity;
 
-        if(activeStateChangeModel.getUsername() == null || activeStateChangeModel.getActive() == null) {
-            entity = new ResponseEntity<>("{ \"Notice\": \"Not be empty\" }", HttpStatus.BAD_REQUEST);
-        } else {
-            User tmpUser = userService.retrieveOne(activeStateChangeModel.getUsername());
+        String token = authHeaderProcessing.getTokenFromAuthHeader(authorization);
 
-            tmpUser.setActive(activeStateChangeModel.getActive());
+        myJWT jwt = new jwtSecurity();
 
-            User tmpToSave = userService.updateOne(tmpUser);
+        Boolean authorized = jwt.VerifyToken(token, "admin");
 
-            if(tmpToSave == null) {
-                entity = new ResponseEntity<>("{ \"Notice\": \"Failed to change password\" }", HttpStatus.BAD_REQUEST);
+        if(authorized) {
+            if(activeStateChangeModel.getUsername() == null || activeStateChangeModel.getActive() == null) {
+                entity = new ResponseEntity<>("{ \"Notice\": \"Not be empty\" }", HttpStatus.BAD_REQUEST);
             } else {
-                entity = new ResponseEntity<>("{ \"username\": \"" + activeStateChangeModel.getUsername() + "\", \"active\": \"" + activeStateChangeModel.getActive() + "\" }", HttpStatus.OK);
+                User tmpUser = userService.retrieveOne(activeStateChangeModel.getUsername());
+    
+                tmpUser.setActive(activeStateChangeModel.getActive());
+    
+                User tmpToSave = userService.updateOne(tmpUser);
+    
+                if(tmpToSave == null) {
+                    entity = new ResponseEntity<>("{ \"Notice\": \"Failed to change password\" }", HttpStatus.BAD_REQUEST);
+                } else {
+                    entity = new ResponseEntity<>("{ \"username\": \"" + activeStateChangeModel.getUsername() + "\", \"active\": \"" + activeStateChangeModel.getActive() + "\" }", HttpStatus.OK);
+                }
             }
+        } else {
+            entity = new ResponseEntity<>("{ \"Notice\": \"Unauthorized\" }", HttpStatus.UNAUTHORIZED);
         }
 
         return entity;
@@ -149,32 +186,42 @@ public class UserREST {
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<Object> register(@RequestBody UserModel user) {
+    public ResponseEntity<Object> register(@RequestBody UserModel user,@RequestHeader("Authorization") String authorization) {
         ResponseEntity<Object> entity;
 
-        if(user.getUsername() == null || user.getPassword() == null) {
-            entity = new ResponseEntity<>("{ \"Notice\": \"Username and password not be empty\" }", HttpStatus.BAD_REQUEST);
-        } else {
-            PasswordAuthUtil passwordAuthUtil = new PasswordAuthUtil();
+        String token = authHeaderProcessing.getTokenFromAuthHeader(authorization);
 
-            String encryptedPassword = passwordAuthUtil.storePassword(user.getPassword());
-            User tmpToCreate = new User(user.getUsername(), encryptedPassword, true);
-            User tmpSaved = userService.createOne(tmpToCreate);
+        myJWT jwt = new jwtSecurity();
 
-            if(tmpSaved == null) {
-                entity = new ResponseEntity<>("{ \"Notice\": \"Username is existed\" }", HttpStatus.BAD_REQUEST);
+        Boolean authorized = jwt.VerifyToken(token, "admin");
+        
+        if(authorized) {
+            if(user.getUsername() == null || user.getPassword() == null) {
+                entity = new ResponseEntity<>("{ \"Notice\": \"Username and password not be empty\" }", HttpStatus.BAD_REQUEST);
             } else {
-                UserRole tmpUserRoleToSave = new UserRole(0, user.getUsername(), 2);
-                UserRole tmpUserRoleSaved = userRoleService.createOne(tmpUserRoleToSave);
-
-                if(tmpUserRoleSaved == null) {
-                    entity = new ResponseEntity<>("{ \"Notice\": \"Failed to create user\" }", HttpStatus.BAD_REQUEST);
+                PasswordAuthUtil passwordAuthUtil = new PasswordAuthUtil();
+    
+                String encryptedPassword = passwordAuthUtil.storePassword(user.getPassword());
+                User tmpToCreate = new User(user.getUsername(), encryptedPassword, true);
+                User tmpSaved = userService.createOne(tmpToCreate);
+    
+                if(tmpSaved == null) {
+                    entity = new ResponseEntity<>("{ \"Notice\": \"Username is existed\" }", HttpStatus.BAD_REQUEST);
                 } else {
-                    entity = new ResponseEntity<>("{ \"username\": \"" + user.getUsername() + "\", \"password\": \"" + user.getPassword() + "\" }", HttpStatus.OK);
+                    UserRole tmpUserRoleToSave = new UserRole(0, user.getUsername(), 2);
+                    UserRole tmpUserRoleSaved = userRoleService.createOne(tmpUserRoleToSave);
+    
+                    if(tmpUserRoleSaved == null) {
+                        entity = new ResponseEntity<>("{ \"Notice\": \"Failed to create user\" }", HttpStatus.BAD_REQUEST);
+                    } else {
+                        entity = new ResponseEntity<>("{ \"username\": \"" + user.getUsername() + "\", \"password\": \"" + user.getPassword() + "\" }", HttpStatus.OK);
+                    }
                 }
             }
+        } else {
+            entity = new ResponseEntity<>("{ \"Notice\": \"Unauthorized\" }", HttpStatus.UNAUTHORIZED);
         }
-        
+
         return entity;
     }
 }

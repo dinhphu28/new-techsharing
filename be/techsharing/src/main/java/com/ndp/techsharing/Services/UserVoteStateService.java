@@ -31,6 +31,10 @@ public class UserVoteStateService {
         return sth;
     }
 
+    public List<UserVoteState> retrieveByArticleId(Integer articleId) {
+        return repo.findByArticleId(articleId);
+    }
+
     public UserVoteState createOne(UserVoteState userVoteState) {
         UserVoteState tmpUserVoteState = null;
 

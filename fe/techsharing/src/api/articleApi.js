@@ -10,7 +10,11 @@ const articleApi = {
     post: (data) => {
         const url = '/articles';
 
-        return axiosClient.post(url, data);
+        return axiosClient.post(url, data, {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem("token")
+            }
+        })
     }
 };
 

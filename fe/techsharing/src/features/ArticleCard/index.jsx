@@ -57,7 +57,7 @@ class ArticleCard extends Component {
                 <Date>Date: {article.dateCreated}</Date>
                 <Vote>
                     <FontAwesomeIcon icon={faCaretUp} />{' '}
-                    <span>0</span>
+                    <span>{article.voteScore}</span>
                     <FontAwesomeIcon icon={faCaretDown} />
                 </Vote>
             </Card>

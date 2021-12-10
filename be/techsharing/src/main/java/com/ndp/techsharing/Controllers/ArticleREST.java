@@ -1,16 +1,23 @@
 package com.ndp.techsharing.Controllers;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.ndp.techsharing.Entities.Article;
 import com.ndp.techsharing.Entities.Comment;
+import com.ndp.techsharing.Entities.UserVoteState;
 import com.ndp.techsharing.Models.Article.ArticleCreateModel;
+import com.ndp.techsharing.Models.Article.ArticleItemReturnModel;
 import com.ndp.techsharing.Models.Article.ArticleUpdateModel;
 import com.ndp.techsharing.Models.Article.PageOfArticleModel;
 import com.ndp.techsharing.Models.Comment.CommentCreateModel;
 import com.ndp.techsharing.Models.Comment.CommentUpdateModel;
 import com.ndp.techsharing.Services.ArticleService;
 import com.ndp.techsharing.Services.CommentService;
+import com.ndp.techsharing.Services.UserVoteStateService;
+import com.ndp.techsharing.Utils.Auth.JWT.jwtSecurity;
+import com.ndp.techsharing.Utils.Auth.JWT.myJWT;
+import com.ndp.techsharing.Utils.Auth.TokenProcessing.AuthHeaderProcessing;
 import com.ndp.techsharing.Utils.DateTime.MyDateTimeUtils;
 import com.ndp.techsharing.Utils.UriParser.MyUriParserUtils;
 
@@ -27,6 +34,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.PutMapping;
 
 
@@ -47,6 +55,12 @@ public class ArticleREST {
     @Autowired
     private MyUriParserUtils myUriParserUtils;
 
+    @Autowired
+    private AuthHeaderProcessing authHeaderProcessing;
+
+    @Autowired
+    private UserVoteStateService userVoteStateService;
+
     @GetMapping (
         produces = MediaType.APPLICATION_JSON_VALUE
     )
@@ -59,9 +73,24 @@ public class ArticleREST {
 
             Integer noPage = (int)Math.ceil(Double.valueOf(articleService.retrieveNumOfPages(categoryName).intValue()) / 10); // ceiling number of pages and convert to Integer
 
+            List<ArticleItemReturnModel> articleItemReturnModels = new ArrayList<ArticleItemReturnModel>();
+            for(Article articleItem : articles) {
+                List<UserVoteState> userVoteStates = userVoteStateService.retrieveByArticleId(articleItem.getId());
+
+                Integer voteScore = 0;
+
+                for(UserVoteState uvsItem : userVoteStates) {
+                    voteScore = voteScore + uvsItem.getVoteState();
+                }
+
+                ArticleItemReturnModel articleItemReturnModel = new ArticleItemReturnModel(articleItem, voteScore);
+
+                articleItemReturnModels.add(articleItemReturnModel);
+            }
+
             pageOfArticleModel.setNumberOfPages(noPage);
             pageOfArticleModel.setCurrentPage(pageNum);
-            pageOfArticleModel.setArticles(articles);
+            pageOfArticleModel.setArticles(articleItemReturnModels);
 
             return new ResponseEntity<>(pageOfArticleModel, HttpStatus.OK);
         } else {
@@ -69,9 +98,24 @@ public class ArticleREST {
 
             Integer noPage = (int)Math.ceil(Double.valueOf(articleService.retrieveNumOfPages(categoryName).intValue()) / 10);
 
-            pageOfArticleModel.setNumberOfPages(noPage); // để tạm Number Of Pages
+            List<ArticleItemReturnModel> articleItemReturnModels = new ArrayList<ArticleItemReturnModel>();
+            for(Article articleItem : articles) {
+                List<UserVoteState> userVoteStates = userVoteStateService.retrieveByArticleId(articleItem.getId());
+
+                Integer voteScore = 0;
+
+                for(UserVoteState uvsItem : userVoteStates) {
+                    voteScore = voteScore + uvsItem.getVoteState();
+                }
+
+                ArticleItemReturnModel articleItemReturnModel = new ArticleItemReturnModel(articleItem, voteScore);
+
+                articleItemReturnModels.add(articleItemReturnModel);
+            }
+
+            pageOfArticleModel.setNumberOfPages(noPage);
             pageOfArticleModel.setCurrentPage(pageNum);
-            pageOfArticleModel.setArticles(articles);
+            pageOfArticleModel.setArticles(articleItemReturnModels);
 
             return new ResponseEntity<>(pageOfArticleModel, HttpStatus.OK);
         }
@@ -95,32 +139,42 @@ public class ArticleREST {
         produces = MediaType.APPLICATION_JSON_VALUE,
         consumes = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<Object> createOneArticle(@RequestBody ArticleCreateModel article) {
+    public ResponseEntity<Object> createOneArticle(@RequestBody ArticleCreateModel article, @RequestHeader("Authorization") String authorization) {
         ResponseEntity<Object> entity;
 
-        if (article.getAuthor() == null ||
-            article.getCategory() == null ||
-            article.getContent() == null ||
-            // article.getDateCreated() == null ||
-            article.getDescription() == null ||
-            article.getThumbnailUrl() == null ||
-            // article.getTimeCreated() == null ||
-            article.getTitle() == null) // ||
-            /* article.getUrl() == null) */ {
-            
-            entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
-        } else {
-            Article articleEntity = article.toArticle(myDateTimeUtils.getCurrentDate(), myDateTimeUtils.getCurrentTime(), myUriParserUtils.getFinalArticleUrl(article.getTitle()));
+        String token = authHeaderProcessing.getTokenFromAuthHeader(authorization);
 
-            Article tmpToSave = articleService.createOne(articleEntity);
+        myJWT jwt = new jwtSecurity();
 
-            if (tmpToSave == null) {
+        Boolean authorized = jwt.VerifyToken(token, article.getAuthor());
+
+        if(authorized) {
+            if (article.getAuthor() == null ||
+                article.getCategory() == null ||
+                article.getContent() == null ||
+                // article.getDateCreated() == null ||
+                article.getDescription() == null ||
+                article.getThumbnailUrl() == null ||
+                // article.getTimeCreated() == null ||
+                article.getTitle() == null) // ||
+                /* article.getUrl() == null) */ {
+                
                 entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
             } else {
-                entity = new ResponseEntity<>(tmpToSave, HttpStatus.CREATED);
+                Article articleEntity = article.toArticle(myDateTimeUtils.getCurrentDate(), myDateTimeUtils.getCurrentTime(), myUriParserUtils.getFinalArticleUrl(article.getTitle()));
+
+                Article tmpToSave = articleService.createOne(articleEntity);
+
+                if (tmpToSave == null) {
+                    entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
+                } else {
+                    entity = new ResponseEntity<>(tmpToSave, HttpStatus.CREATED);
+                }
             }
+        } else {
+            entity = new ResponseEntity<>("{ \"Notice\": \"Unauthorized\" }", HttpStatus.UNAUTHORIZED);
         }
-        
+
         return entity;
     }
     
@@ -129,33 +183,43 @@ public class ArticleREST {
         produces = MediaType.APPLICATION_JSON_VALUE,
         consumes = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<Object> updateOneArticle(@PathVariable("id") Integer id, @RequestBody ArticleUpdateModel article) {
+    public ResponseEntity<Object> updateOneArticle(@PathVariable("id") Integer id, @RequestBody ArticleUpdateModel article, @RequestHeader("Authorization") String authorization) {
         
         ResponseEntity<Object> entity;
 
-        if (/* article.getAuthor() == null || */
-            article.getCategory() == null ||
-            article.getContent() == null ||
-            // article.getDateCreated() == null ||
-            article.getDescription() == null ||
-            article.getThumbnailUrl() == null ||
-            // article.getTimeCreated() == null ||
-            article.getTitle() == null) // ||
-            /* article.getUrl() == null) */ {
-            
-            entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
-        } else {
-            Article tmpArticle = articleService.retrieveOne(id);
+        String token = authHeaderProcessing.getTokenFromAuthHeader(authorization);
 
-            if(tmpArticle != null) {
-                Article articleEntity = article.toArticle(id, tmpArticle.getDateCreated(), tmpArticle.getTimeCreated(), tmpArticle.getAuthor(), tmpArticle.getUrl());
+        myJWT jwt = new jwtSecurity();
 
-                Article tmpToSave = articleService.updateOne(articleEntity);
+        Boolean authorized = jwt.VerifyToken(token, article.getUserAgent());
 
-                entity = new ResponseEntity<>(tmpToSave, HttpStatus.OK);
-            } else {
+        if(authorized) {
+            if (/* article.getAuthor() == null || */
+                article.getCategory() == null ||
+                article.getContent() == null ||
+                // article.getDateCreated() == null ||
+                article.getDescription() == null ||
+                article.getThumbnailUrl() == null ||
+                // article.getTimeCreated() == null ||
+                article.getTitle() == null) // ||
+                /* article.getUrl() == null) */ {
+                
                 entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
+            } else {
+                Article tmpArticle = articleService.retrieveOne(id);
+
+                if(tmpArticle != null) {
+                    Article articleEntity = article.toArticle(id, tmpArticle.getDateCreated(), tmpArticle.getTimeCreated(), tmpArticle.getAuthor(), tmpArticle.getUrl());
+
+                    Article tmpToSave = articleService.updateOne(articleEntity);
+
+                    entity = new ResponseEntity<>(tmpToSave, HttpStatus.OK);
+                } else {
+                    entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
+                }
             }
+        } else {
+            entity = new ResponseEntity<>("{ \"Notice\": \"Unauthorized\" }", HttpStatus.UNAUTHORIZED);
         }
 
         return entity;
@@ -165,8 +229,15 @@ public class ArticleREST {
         value="/{id}",
         produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<Object> deleteOneArticle(@PathVariable("id") Integer id) {
+    public ResponseEntity<Object> deleteOneArticle(@PathVariable("id") Integer id, @RequestHeader("Authorization") String authorization) {
         ResponseEntity<Object> entity;
+
+        // String token = authHeaderProcessing.getTokenFromAuthHeader(authorization);
+
+        // myJWT jwt = new jwtSecurity();
+
+        // Boolean authorized = jwt.VerifyToken(token, )
+        // processing authorization here
 
         Boolean kk = false;
 
@@ -204,27 +275,36 @@ public class ArticleREST {
     @PostMapping(
         value = "/{articleId}/comments"
     )
-    public ResponseEntity<Object> createOneCommentOfArticle(@PathVariable("articleId") Integer articleId, @RequestBody CommentCreateModel comment) {
+    public ResponseEntity<Object> createOneCommentOfArticle(@PathVariable("articleId") Integer articleId, @RequestBody CommentCreateModel comment, @RequestHeader("Authorization") String authorization) {
         ResponseEntity<Object> entity;
 
-        if (comment.getAuthor() == null ||
-            comment.getContent() == null) { // ||
-            // comment.getDate() == null ||
-            // comment.getTime() == null) {
-         
-            entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
-        } else {
-            Comment commentEntity = comment.toComment(articleId, myDateTimeUtils.getCurrentDate(), myDateTimeUtils.getCurrentTime());
+        String token = authHeaderProcessing.getTokenFromAuthHeader(authorization);
 
-            Comment tmpToSave = commentService.createOne(commentEntity);
+        myJWT jwt = new jwtSecurity();
 
-            if (tmpToSave == null) {
+        Boolean authorized = jwt.VerifyToken(token, comment.getAuthor());
+
+        if(authorized) {
+            if (comment.getAuthor() == null ||
+                comment.getContent() == null) { // ||
+                // comment.getDate() == null ||
+                // comment.getTime() == null) {
+            
                 entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
             } else {
-                entity = new ResponseEntity<>(tmpToSave, HttpStatus.CREATED);
-            }
-        }
+                Comment commentEntity = comment.toComment(articleId, myDateTimeUtils.getCurrentDate(), myDateTimeUtils.getCurrentTime());
 
+                Comment tmpToSave = commentService.createOne(commentEntity);
+
+                if (tmpToSave == null) {
+                    entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
+                } else {
+                    entity = new ResponseEntity<>(tmpToSave, HttpStatus.CREATED);
+                }
+            }
+        } else {
+            entity = new ResponseEntity<>("{ \"Notice\": \"Unauthorized\" }", HttpStatus.UNAUTHORIZED);
+        }
         return entity;
     }
 
@@ -233,35 +313,45 @@ public class ArticleREST {
         produces = MediaType.APPLICATION_JSON_VALUE,
         consumes = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<Object> updateOneCommentOfArticle(@PathVariable("articleId") Integer articleId, @PathVariable("commentId") Integer commentId, @RequestBody CommentUpdateModel comment) {
+    public ResponseEntity<Object> updateOneCommentOfArticle(@PathVariable("articleId") Integer articleId, @PathVariable("commentId") Integer commentId, @RequestBody CommentUpdateModel comment, @RequestHeader("Authorization") String authorization) {
         ResponseEntity entity;
 
-        if (comment.getAuthor() == null ||
-            comment.getContent() == null) { // ||
-            // comment.getDate() == null ||
-            // comment.getTime() == null) {
-         
-            entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
-        } else {
-            Comment tmpLoad = commentService.retrieveOne(commentId);
+        String token = authHeaderProcessing.getTokenFromAuthHeader(authorization);
 
-            if(tmpLoad == null) {
-                entity = new ResponseEntity<>("{ \"Notice\": \"Not found\" }", HttpStatus.NOT_FOUND);
+        myJWT jwt = new jwtSecurity();
+
+        Boolean authorized = jwt.VerifyToken(token, comment.getAuthor());
+
+        if(authorized) {
+            if (comment.getAuthor() == null ||
+                comment.getContent() == null) { // ||
+                // comment.getDate() == null ||
+                // comment.getTime() == null) {
+            
+                entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
             } else {
-                if(tmpLoad.getArticleId() != articleId) {
+                Comment tmpLoad = commentService.retrieveOne(commentId);
+
+                if(tmpLoad == null) {
                     entity = new ResponseEntity<>("{ \"Notice\": \"Not found\" }", HttpStatus.NOT_FOUND);
                 } else {
-                    Comment commentEntity = comment.toComment(articleId, commentId, myDateTimeUtils.getCurrentDate(), myDateTimeUtils.getCurrentTime());
-
-                    Comment tmpToSave = commentService.updateOne(commentEntity);
-
-                    if(tmpToSave == null) {
-                        entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
+                    if(tmpLoad.getArticleId() != articleId) {
+                        entity = new ResponseEntity<>("{ \"Notice\": \"Not found\" }", HttpStatus.NOT_FOUND);
                     } else {
-                        entity = new ResponseEntity<>(tmpToSave, HttpStatus.OK);
+                        Comment commentEntity = comment.toComment(articleId, commentId, myDateTimeUtils.getCurrentDate(), myDateTimeUtils.getCurrentTime());
+
+                        Comment tmpToSave = commentService.updateOne(commentEntity);
+
+                        if(tmpToSave == null) {
+                            entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
+                        } else {
+                            entity = new ResponseEntity<>(tmpToSave, HttpStatus.OK);
+                        }
                     }
                 }
             }
+        } else {
+            entity = new ResponseEntity<>("{ \"Notice\": \"Unauthorized\" }", HttpStatus.UNAUTHORIZED);
         }
 
         return entity;
@@ -301,5 +391,5 @@ public class ArticleREST {
      * For Vote - Evaluation
      */
 
-    // something
+    
 }

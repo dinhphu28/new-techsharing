@@ -10,7 +10,11 @@ const commentApi = {
     post: (articleId, data) => {
         const url = `/articles/${articleId}/comments`;
 
-        return axiosClient.post(url, data);
+        return axiosClient.post(url, data, {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem("token")
+            }
+        });
     }
 };
 

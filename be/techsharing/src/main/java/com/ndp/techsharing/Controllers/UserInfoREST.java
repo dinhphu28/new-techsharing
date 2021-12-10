@@ -4,6 +4,9 @@ import com.ndp.techsharing.Entities.UserInfo;
 import com.ndp.techsharing.Models.UserInfo.UserInfoReturnModel;
 import com.ndp.techsharing.Models.UserInfo.UserInfoUpdateModel;
 import com.ndp.techsharing.Services.UserInfoService;
+import com.ndp.techsharing.Utils.Auth.JWT.jwtSecurity;
+import com.ndp.techsharing.Utils.Auth.JWT.myJWT;
+import com.ndp.techsharing.Utils.Auth.TokenProcessing.AuthHeaderProcessing;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,6 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,6 +27,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserInfoREST {
     @Autowired
     private UserInfoService userInfoService;
+
+    @Autowired
+    private AuthHeaderProcessing authHeaderProcessing;
 
     @GetMapping(
         value = "/{username}",
@@ -49,22 +56,32 @@ public class UserInfoREST {
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<Object> updateProfileInfo(@PathVariable("username") String username, @RequestBody UserInfoUpdateModel userInfoUpdateModel) {
+    public ResponseEntity<Object> updateProfileInfo(@PathVariable("username") String username, @RequestBody UserInfoUpdateModel userInfoUpdateModel, @RequestHeader("Authorization") String authorization) {
         ResponseEntity<Object> entity;
 
-        if(userInfoUpdateModel.getAvatar() == null) {
-            entity = new ResponseEntity<>("{ \"Notice\": \"Not null\" }", HttpStatus.BAD_REQUEST);
-        } else {
+        String token = authHeaderProcessing.getTokenFromAuthHeader(authorization);
 
-            UserInfo tmpToSave = userInfoUpdateModel.toUserInfoEntity(username);
+        myJWT jwt = new jwtSecurity();
 
-            UserInfo tmpUserInfo = userInfoService.saveOne(tmpToSave);
+        Boolean authorized = jwt.VerifyToken(token, username);
 
-            if(tmpUserInfo == null) {
-                entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
+        if(authorized) {
+            if(userInfoUpdateModel.getAvatar() == null) {
+                entity = new ResponseEntity<>("{ \"Notice\": \"Not null\" }", HttpStatus.BAD_REQUEST);
             } else {
-                entity = new ResponseEntity<>(tmpUserInfo, HttpStatus.OK);
+    
+                UserInfo tmpToSave = userInfoUpdateModel.toUserInfoEntity(username);
+    
+                UserInfo tmpUserInfo = userInfoService.saveOne(tmpToSave);
+    
+                if(tmpUserInfo == null) {
+                    entity = new ResponseEntity<>("{ \"Notice\": \"Failed\" }", HttpStatus.BAD_REQUEST);
+                } else {
+                    entity = new ResponseEntity<>(tmpUserInfo, HttpStatus.OK);
+                }
             }
+        } else {
+            entity = new ResponseEntity<>("{ \"Notice\": \"Unauthorized\" }", HttpStatus.UNAUTHORIZED);
         }
 
         return entity;

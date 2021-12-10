@@ -25,7 +25,7 @@ public class ArticleUpdateModel {
 
     // private LocalTime timeCreated;
 
-    // private String author;
+    private String userAgent;
 
     // private String url;
 

@@ -96,7 +96,7 @@ CREATE TABLE tbl_user_vote_state (
     col_id INT IDENTITY(1,1),
     col_article_id INT REFERENCES tbl_article(col_id) NOT NULL,
     col_username VARCHAR(30) REFERENCES tbl_user(col_username) NOT NULL,
-    col_vote_state INT NOT NULL, -- 0: none | 1: up | 2: down
+    col_vote_state INT NOT NULL, -- 0: none | 1: up | -1: down
     
     PRIMARY KEY(col_id)
 )
