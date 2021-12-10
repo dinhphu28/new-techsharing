@@ -26,6 +26,7 @@ GO
 CREATE TABLE tbl_user_info (
     col_username VARCHAR(30) REFERENCES tbl_user(col_username),
     col_avatar VARCHAR(500) NOT NULL DEFAULT 'https://www.apple.com/ac/structured-data/images/open_graph_logo.png?201809210816',
+    col_email VARCHAR(100) NULL,
 
     PRIMARY KEY (col_username)
 )
@@ -43,7 +44,7 @@ GO
 -- User Role
 CREATE TABLE tbl_user_role (
     col_id INT IDENTITY(1,1),
-    col_username VARCHAR(30) REFERENCES tbl_user(col_username) NOT NULL,
+    col_username VARCHAR(30) REFERENCES tbl_user(col_username) UNIQUE NOT NULL,
     col_role_id INT REFERENCES tbl_role(col_id) NOT NULL,
 
     PRIMARY KEY(col_id)
@@ -99,4 +100,12 @@ CREATE TABLE tbl_user_vote_state (
     
     PRIMARY KEY(col_id)
 )
+GO
+
+
+-- Init data
+INSERT INTO tbl_user (col_username, col_password, col_active) VALUES ('admin', '$2a$10$Oq2/BUGgxCaeKjcWEnpiyOyh0aGOeltqUM9Db44cRJvlfX9npXmzy', 1)
+GO
+
+INSERT INTO tbl_user_role (col_username, col_role_id) VALUES ('admin', 1)
 GO
