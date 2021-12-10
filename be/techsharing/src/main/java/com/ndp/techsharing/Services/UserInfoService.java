@@ -57,4 +57,17 @@ public class UserInfoService {
 
         return tmpUserInfo;
     }
+
+    public UserInfo saveOne(UserInfo userInfo) {
+        UserInfo tmpUserInfo = null;
+
+        try {
+            tmpUserInfo = repo.save(userInfo);
+
+        } catch (Exception e) {
+            //TODO: handle exception
+        }
+
+        return tmpUserInfo;
+    }
 }

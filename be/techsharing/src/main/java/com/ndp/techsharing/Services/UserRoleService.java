@@ -43,6 +43,10 @@ public class UserRoleService {
         return sth;
     }
 
+    public List<UserRole> retrieveByRole(Integer roleId) {
+        return repo.findByRoleId(roleId);
+    }
+
     public UserRole createOne(UserRole userRole) {
         UserRole tmpUserRole = null;
 

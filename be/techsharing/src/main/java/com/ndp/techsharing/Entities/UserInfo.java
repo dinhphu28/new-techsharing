@@ -23,4 +23,7 @@ public class UserInfo {
 
     @Column(name = "col_avatar")
     private String avatar;
+
+    @Column(name = "col_email")
+    private String email;
 }
