@@ -13,8 +13,8 @@ const authApi = {
         return axiosClient.post(url, data);
     },
 
-    patch: (data) => {
-        const url = 'auth';
+    patch: (username, data) => {
+        const url = `/auth/${username}`;
 
         return axiosClient.patch(url, data);
     }

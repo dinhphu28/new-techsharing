@@ -85,7 +85,7 @@ function AddArticle(props) {
     const createArticleToBE = async () => {
         try {
             const data = {
-                author: "catmeow",
+                author: localStorage.getItem("username"),
                 title: title,
                 description: description,
                 content: content,

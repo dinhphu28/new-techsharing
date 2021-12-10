@@ -1,10 +1,11 @@
 import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from 'reactstrap';
 import "./CommentCreate.css";
 // import PropTypes from 'prop-types';
 import commentApi from '../../../api/commentApi';
+import profileApi from '../../../api/profileApi';
 
 // CommentCreate.propTypes = {};
 
@@ -36,9 +37,32 @@ function CommentCreate(props) {
         }
     }
 
+    const [avatar, setAvatar] = useState("");
+
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const username = localStorage.getItem("username");
+
+                const response = await profileApi.get(username);
+
+                // setProfileInfo(response);
+
+                setAvatar(response.avatar);
+
+                // console.log("Fetch profile successfully: ", response);
+                
+            } catch (error) {
+                console.log("Failed to fetch profile info: ", error);
+            }
+        }
+
+        fetchProfile();
+    }, []);
+
     return (
         <div className="leave-comment">
-            <img src="https://image.freepik.com/free-photo/closeup-person-holding-adorable-tiny-kitten_181624-21695.jpg" alt="Avatar" />
+            <img src={(avatar) ? avatar : "http://www.vov.edu.vn/frontend/home/images/no-avatar.png"} alt="Avatar" />
             <textarea
                 name="comment"
                 rows="4"

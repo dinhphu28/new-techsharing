@@ -12,12 +12,15 @@ import SignInPage from './pages/SignInPage';
 import SignUpPage from './pages/SignUpPage';
 import AddArticle from './pages/AddArticle/AddArticle';
 import { useState } from 'react';
+import Profile from './pages/Profile/index';
+import ChangePassword from './pages/ChangePassword/index';
+import AdminMan from './pages/AdminManagement/AdminMan';
 
 function App() {
 
   const [reloadToggle, setReloadToggle] = useState(false);
 
-  const receiveReloadToggle = (data) => {
+  const receiveReloadToggle = () => {
     setReloadToggle(!reloadToggle);
   };
 
@@ -47,8 +50,13 @@ function App() {
 
             <Route path="/sign-in" element={<SignInPage onHandleChange={receiveReloadToggle} />} />
             <Route path="/sign-up" element={<SignUpPage />} />
+            <Route path="/change-password" element={<ChangePassword />} />
 
             <Route path="/create-article" element={<AddArticle />} />
+            
+            <Route path="/profile" element={<Profile />} />
+
+            <Route path="/admin" element={<AdminMan />} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

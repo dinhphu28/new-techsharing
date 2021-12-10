@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 // import PropTypes from 'prop-types';
-import { Button, Collapse, Nav, Navbar, NavbarBrand, NavbarToggler, NavItem, NavLink } from 'reactstrap';
+import { Collapse, DropdownItem, DropdownMenu, DropdownToggle, Nav, Navbar, NavbarBrand, NavbarText, NavbarToggler, NavItem, NavLink, UncontrolledDropdown } from 'reactstrap';
 import AddArticleBtn from './addArticleBtn';
 import "./navbarStyles.css"
 import { useNavigate } from 'react-router-dom';
+import profileApi from '../../api/profileApi';
+import AdminManBtn from './adminManBtn';
 
 // NavBar.propTypes = {};
 
@@ -19,8 +21,30 @@ function SignInUpNav(props) {
 function UserAvtNav(props) {
 
     // const [reloadToggle, setReloadToggle] = useState(false);
+    const [avatar, setAvatar] = useState("");
 
     let navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const username = localStorage.getItem("username");
+
+                const response = await profileApi.get(username);
+
+                // setProfileInfo(response);
+
+                setAvatar(response.avatar);
+
+                // console.log("Fetch profile successfully: ", response);
+                
+            } catch (error) {
+                console.log("Failed to fetch profile info: ", error);
+            }
+        }
+
+        fetchProfile();
+    }, []);
 
     const logOutHandler = () => {
         localStorage.removeItem("username");
@@ -34,16 +58,46 @@ function UserAvtNav(props) {
 
     return (
         <div className="user-avatar-nav">
-            <NavLink href="#">  {/* Navigate to user's profile */}
-                <img src="https://cly.1cdn.vn/2021/01/03/iu.jpg" alt="Avatar" />
-            </NavLink>
+            {/* <NavLink href="/profile">  
+                <img src={avatar} alt="Avatar" />
+            </NavLink> */}
 
-            <Button
+            <UncontrolledDropdown
+                // inNavbar
+                // nav
+            >
+                <DropdownToggle
+                    // caret
+                    nav
+                >
+                    <img src={avatar} alt="Avatar" />
+                </DropdownToggle>
+                <DropdownMenu end>
+                    <DropdownItem>
+                        <NavLink href="/profile">
+                            Profile
+                        </NavLink>
+                    </DropdownItem>
+                    <DropdownItem>
+                        <NavLink href="/change-password">
+                            Change password
+                        </NavLink>
+                    </DropdownItem>
+                    <DropdownItem divider />
+                    <DropdownItem
+                        onClick={() => logOutHandler()}
+                        id="btn-sign-out">
+                        Sign out
+                    </DropdownItem>
+                </DropdownMenu>
+            </UncontrolledDropdown>
+
+            {/* <Button
                 color="primary"
                 onClick={() => logOutHandler()}
             >
                 Sign out
-            </Button>
+            </Button> */}
         </div>
     );
 }
@@ -86,11 +140,15 @@ function NavBar(props) {
                 </Nav>
 
                 {/* <AddArticleBtn /> */}
-                {(localStorage.getItem("role") === "mod") ? <AddArticleBtn /> : ""}
+                {(localStorage.getItem("role") === "mod" || localStorage.getItem("role") === "admin") ? <AddArticleBtn /> : ""}
+                {(localStorage.getItem("role") === "admin") ? <AdminManBtn /> : ""}
                 
                 {(localStorage.getItem("username") !== null) ? <UserAvtNav onHandleChange={receiveData} /> : <SignInUpNav />}
                 {/* <NavLink href="/sign-in">Sign In</NavLink>
                 <NavLink href="/sign-up">Sign Up</NavLink> */}
+                <NavbarText>
+                    {(localStorage.getItem("username") !== null) ? localStorage.getItem("username") : ""}
+                </NavbarText>
                 </Collapse>
             </Navbar>
         </div>
