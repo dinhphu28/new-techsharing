@@ -35,6 +35,19 @@ public class UserVoteStateService {
         return repo.findByArticleId(articleId);
     }
 
+    public UserVoteState retrieveOneByArticleIdAndUsername(Integer articleId, String username) {
+        UserVoteState tmp = null;
+
+        try {
+            tmp = repo.findByArticleIdAndUsername(articleId, username);
+
+        } catch (Exception e) {
+            //TODO: handle exception
+        }
+
+        return tmp;
+    }
+
     public UserVoteState createOne(UserVoteState userVoteState) {
         UserVoteState tmpUserVoteState = null;
 
@@ -55,6 +68,20 @@ public class UserVoteStateService {
         try {
             repo.findById(userVoteState.getId()).get();
 
+            tmpUserVoteState = repo.save(userVoteState);
+        } catch (Exception e) {
+            //TODO: handle exception
+        }
+
+        return tmpUserVoteState;
+    }
+
+    public UserVoteState saveOne(UserVoteState userVoteState) {
+        UserVoteState tmpUserVoteState = null;
+
+        userVoteState.setId(0);
+
+        try {
             tmpUserVoteState = repo.save(userVoteState);
         } catch (Exception e) {
             //TODO: handle exception

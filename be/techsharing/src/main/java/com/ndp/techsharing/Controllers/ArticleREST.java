@@ -12,6 +12,8 @@ import com.ndp.techsharing.Models.Article.ArticleUpdateModel;
 import com.ndp.techsharing.Models.Article.PageOfArticleModel;
 import com.ndp.techsharing.Models.Comment.CommentCreateModel;
 import com.ndp.techsharing.Models.Comment.CommentUpdateModel;
+import com.ndp.techsharing.Models.UserVoteState.UVSReturnModel;
+import com.ndp.techsharing.Models.UserVoteState.UVSUpdateModel;
 import com.ndp.techsharing.Services.ArticleService;
 import com.ndp.techsharing.Services.CommentService;
 import com.ndp.techsharing.Services.UserVoteStateService;
@@ -391,5 +393,70 @@ public class ArticleREST {
      * For Vote - Evaluation
      */
 
-    
+    @GetMapping(
+        value = "/{articleId}/vote-state",
+        produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<Object> retrieveOneUserVoteState(@PathVariable("articleId") Integer articleId, @RequestParam(value = "username", required = true) String username) {
+        ResponseEntity<Object> entity;
+
+        UserVoteState userVoteState = userVoteStateService.retrieveOneByArticleIdAndUsername(articleId, username);
+
+        if(userVoteState == null) {
+            UVSReturnModel uvsReturnModel = new UVSReturnModel(articleId, username, 0);
+
+            entity = new ResponseEntity<>(uvsReturnModel, HttpStatus.OK);
+        } else {
+            UVSReturnModel uvsReturnModel = new UVSReturnModel(userVoteState);
+
+            entity = new ResponseEntity<>(uvsReturnModel, HttpStatus.OK);
+        }
+
+        return entity;
+    }
+
+    @PutMapping(
+        value = "/{articleId}/vote-state",
+        produces = MediaType.APPLICATION_JSON_VALUE,
+        consumes = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<Object> updateUserVoteState(@PathVariable("articleId") Integer articleId, @RequestParam(value = "username", required = true) String username, @RequestBody UVSUpdateModel uvsUpdateModel) {
+        ResponseEntity<Object> entity;
+
+        if(uvsUpdateModel.getVoteState() == null) {
+
+            entity = new ResponseEntity<>("{ \"Notice\": \"Vote state not be empty\" }", HttpStatus.BAD_REQUEST);
+
+        } else if(uvsUpdateModel.getVoteState() < -1 || uvsUpdateModel.getVoteState() > 1) {
+
+            entity = new ResponseEntity<>("{ \"Notice\": \"Vote state is invalid\" }", HttpStatus.BAD_REQUEST);
+
+        } else {
+            UserVoteState tmpUVS = userVoteStateService.retrieveOneByArticleIdAndUsername(articleId, username);
+
+            if(tmpUVS != null) {
+                UserVoteState uvsToSave = new UserVoteState(tmpUVS.getId(), tmpUVS.getArticleId(), tmpUVS.getUsername(), uvsUpdateModel.getVoteState());
+
+                UserVoteState tmpSaved = userVoteStateService.updateOne(uvsToSave);
+
+                if(tmpSaved == null) {
+                    entity = new ResponseEntity<>("{ \"Notice\": \"Failed to save\" }", HttpStatus.BAD_REQUEST);
+                } else {
+                    entity = new ResponseEntity<>(tmpSaved, HttpStatus.OK);
+                }
+            } else {
+                UserVoteState uvsToSave = new UserVoteState(0, articleId, username, uvsUpdateModel.getVoteState());
+
+                UserVoteState tmpSaved = userVoteStateService.createOne(uvsToSave);
+
+                if(tmpSaved == null) {
+                    entity = new ResponseEntity<>("{ \"Notice\": \"Failed to save\" }", HttpStatus.BAD_REQUEST);
+                } else {
+                    entity = new ResponseEntity<>(tmpSaved, HttpStatus.OK);
+                }
+            }
+        }
+
+        return entity;
+    }
 }
