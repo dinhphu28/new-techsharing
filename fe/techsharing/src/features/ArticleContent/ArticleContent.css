@@ -59,6 +59,10 @@
     text-indent: 3rem;
 }
 
+.article .article-content p {
+    text-align: justify;
+}
+
 .article .article-content img {
     display: block;
     margin: 0 auto;

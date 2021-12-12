@@ -77,8 +77,10 @@ const Card = styled.div`
 
     background: #fff;
     img {
-        width: 250px;
-        height: 220px;
+        /* width: 250px; */
+        /* height: 220px; */
+        width: 15rem;
+        height: 14rem;
         object-fit: cover;
     }
 `;

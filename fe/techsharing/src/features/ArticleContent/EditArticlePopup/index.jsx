@@ -86,6 +86,8 @@ function EditArticlePopup(props) {
             alert("Submit success")
             // handle submit ok here
             updateArticleToBE();
+
+            props.onHandleChange();
         }
     }
 

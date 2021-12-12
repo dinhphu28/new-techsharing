@@ -33,6 +33,8 @@ public class MyUriParserUtils {
         temp = s.replace("?", "");
         temp = temp.replace(' ', '-');
         temp = temp.replace("đ", "d");
+        temp = temp.replace("Đ", "d");
+        temp = temp.replace("\"", "");
         return temp;
     }
 
