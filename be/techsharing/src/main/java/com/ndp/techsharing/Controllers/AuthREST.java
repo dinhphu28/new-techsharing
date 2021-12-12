@@ -50,35 +50,39 @@ public class AuthREST {
             if(tmpUser == null) {
                 entity = new ResponseEntity<>("{ \"Notice\": \"Invalid username or password\" }", HttpStatus.BAD_REQUEST);  // invalid username
             } else {
-                PasswordAuthUtil passwordAuthUtil = new PasswordAuthUtil();
+                if(tmpUser.getActive()) {
+                    PasswordAuthUtil passwordAuthUtil = new PasswordAuthUtil();
 
-                if(passwordAuthUtil.verifyPassword(user.getPassword(), tmpUser.getPassword())) {
-                    // create token here
-                    myJWT jwt = new jwtSecurity();
+                    if(passwordAuthUtil.verifyPassword(user.getPassword(), tmpUser.getPassword())) {
+                        // create token here
+                        myJWT jwt = new jwtSecurity();
 
-                    String token = jwt.GenerateToken(user.getUsername());
+                        String token = jwt.GenerateToken(user.getUsername());
 
-                    if(token == "") {
-                        entity = new ResponseEntity<>("{ \"Notice\": \"Invalid username or password\" }", HttpStatus.BAD_REQUEST);  // failed to create token
-                    } else {
-                        UserRole userRole = userRoleService.retrieveOneByUsername(user.getUsername());
+                        if(token == "") {
+                            entity = new ResponseEntity<>("{ \"Notice\": \"Invalid username or password\" }", HttpStatus.BAD_REQUEST);  // failed to create token
+                        } else {
+                            UserRole userRole = userRoleService.retrieveOneByUsername(user.getUsername());
 
-                        String roleStr = "";
+                            String roleStr = "";
 
-                        if(userRole.getRoleId() == 1) {
-                            roleStr = "admin";
-                        } else if(userRole.getRoleId() == 2) {
-                            roleStr = "mod";
-                        } else if(userRole.getRoleId() == 3) {
-                            roleStr = "norm";
+                            if(userRole.getRoleId() == 1) {
+                                roleStr = "admin";
+                            } else if(userRole.getRoleId() == 2) {
+                                roleStr = "mod";
+                            } else if(userRole.getRoleId() == 3) {
+                                roleStr = "norm";
+                            }
+
+                            CredentialReturn credentialReturn = new CredentialReturn(user.getUsername(), roleStr, token);
+
+                            entity = new ResponseEntity<>(credentialReturn, HttpStatus.OK);
                         }
-
-                        CredentialReturn credentialReturn = new CredentialReturn(user.getUsername(), roleStr, token);
-
-                        entity = new ResponseEntity<>(credentialReturn, HttpStatus.OK);
+                    } else {
+                        entity = new ResponseEntity<>("{ \"Notice\": \"Invalid username or password\" }", HttpStatus.BAD_REQUEST);  // invalid password
                     }
                 } else {
-                    entity = new ResponseEntity<>("{ \"Notice\": \"Invalid username or password\" }", HttpStatus.BAD_REQUEST);  // invalid password
+                    entity = new ResponseEntity<>("{ \"Notice\": \"User was blocked\" }", HttpStatus.LOCKED);
                 }
             }
         }

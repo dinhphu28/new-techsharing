@@ -149,6 +149,7 @@ public class ArticleREST {
         myJWT jwt = new jwtSecurity();
 
         Boolean authorized = jwt.VerifyToken(token, article.getAuthor());
+        
 
         if(authorized) {
             if (article.getAuthor() == null ||
@@ -243,6 +244,10 @@ public class ArticleREST {
 
         Boolean kk = false;
 
+        kk = commentService.deleteAllByArticleId(id);
+
+        kk = userVoteStateService.deleteAllByArticleId(id);
+        
         kk = articleService.deleteOne(id);
 
         if(kk) {

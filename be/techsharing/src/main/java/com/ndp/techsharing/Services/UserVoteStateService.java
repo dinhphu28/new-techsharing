@@ -89,4 +89,20 @@ public class UserVoteStateService {
 
         return tmpUserVoteState;
     }
+
+    public Boolean deleteAllByArticleId(Integer articleId) {
+        Boolean kk = false;
+
+        try {
+            Long ii = repo.deleteByArticleId(articleId);
+
+            if(ii > 0) {
+                kk = true;
+            }
+        } catch (Exception e) {
+            //TODO: handle exception
+        }
+
+        return kk;
+    }
 }

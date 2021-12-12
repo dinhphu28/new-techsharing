@@ -12,4 +12,6 @@ public interface UserVoteStateRepo extends JpaRepository<UserVoteState, Integer>
     UserVoteState findByArticleIdAndUsername(Integer articleId, String username);
 
     Long countByArticleId(Integer articleId);
+
+    Long deleteByArticleId(Integer articleId);
 }

@@ -6,10 +6,10 @@
 -- DROP DATABASE techsharing
 -- GO
 
-CREATE DATABASE techsharing
+CREATE DATABASE techsharingdb
 GO
 
-USE techsharing
+USE techsharingdb
 GO
 
 -- User
@@ -69,14 +69,14 @@ CREATE TABLE tbl_article (
 GO
 
 -- Article Evaluation
-CREATE TABLE tbl_article_evaluation (
-    col_article_id INT REFERENCES tbl_article(col_id),
-    col_upvote INT DEFAULT 0 NOT NULL,
-    col_downvote INT DEFAULT 0 NOT NULL,
+-- CREATE TABLE tbl_article_evaluation (
+--     col_article_id INT REFERENCES tbl_article(col_id),
+--     col_upvote INT DEFAULT 0 NOT NULL,
+--     col_downvote INT DEFAULT 0 NOT NULL,
 
-    PRIMARY KEY(col_article_id)
-)
-GO
+--     PRIMARY KEY(col_article_id)
+-- )
+-- GO
 
 -- Comment
 CREATE TABLE tbl_comment (

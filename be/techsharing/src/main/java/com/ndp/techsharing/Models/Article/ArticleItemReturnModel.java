@@ -54,7 +54,7 @@ public class ArticleItemReturnModel {
 
         this.url = article.getUrl();
 
-        this.category = article.getAuthor();
+        this.category = article.getCategory();
 
         this.thumbnailUrl = article.getThumbnailUrl();
 
